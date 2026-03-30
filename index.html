@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>14-1 Billiard Scoreboard</title>
     <style>
+        /* --- DÉFINITION DES THÈMES (VARIABLES CSS) --- */
         :root {
+            /* Mode Sombre (Par défaut) */
             --md-sys-color-primary: #D0E4FF;
             --md-sys-color-on-primary: #003355;
             --md-sys-color-surface: #1A1C1E;
@@ -14,145 +16,122 @@
             --md-sys-color-outline: #8D9199;
             --md-sys-color-error: #FFB4AB;
             --md-sys-color-success: #B4F0AD;
-            --card-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            --bg-body: #111315;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        [data-theme="light"] {
+            /* Mode Clair */
+            --md-sys-color-primary: #0061A4;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-surface: #FCFCFF;
+            --md-sys-color-surface-variant: #DEE3EB;
+            --md-sys-color-on-surface: #1A1C1E;
+            --md-sys-color-outline: #74777F;
+            --md-sys-color-error: #BA1A1A;
+            --md-sys-color-success: #006E00;
+            --bg-body: #F0F2F5;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         body { 
             font-family: 'Roboto', 'Segoe UI', sans-serif; 
-            background-color: #111315; 
+            background-color: var(--bg-body); 
             color: var(--md-sys-color-on-surface); 
-            margin: 0; 
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            box-sizing: border-box;
+            margin: 0; padding: 16px;
+            display: flex; flex-direction: column;
+            min-height: 100vh; box-sizing: border-box;
             align-items: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* --- TOP BAR --- */
+        /* --- HEADER : BOUTONS AJUSTÉS --- */
         .header-btns { 
-            display: flex; 
-            gap: 12px; 
-            width: 100%;
-            max-width: 1000px;
+            display: flex; gap: 8px; 
+            width: 100%; max-width: 1000px;
             margin-bottom: 24px;
         }
 
         button { 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 28px; /* Material 3 style */
-            font-weight: 500; 
-            letter-spacing: 0.1px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            cursor: pointer; border: none; border-radius: 28px; 
+            font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center;
+            white-space: nowrap;
         }
 
         .btn-start { 
             background-color: var(--md-sys-color-primary); 
             color: var(--md-sys-color-on-primary); 
-            padding: 12px 24px; flex: 2;
-            font-size: 0.9em;
+            padding: 12px 16px; flex: 1.5; /* Largeur réduite */
+            font-size: 0.85em;
         }
 
         .btn-undo { 
             background-color: var(--md-sys-color-surface-variant); 
             color: var(--md-sys-color-on-surface); 
-            padding: 12px 24px; flex: 1;
-            font-size: 0.9em;
+            padding: 12px 16px; flex: 1.2;
+            font-size: 0.85em;
         }
 
-        button:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
-        button:active:not(:disabled) { transform: scale(0.98); }
-
-        /* --- MAIN LAYOUT --- */
-        .main-container { 
-            display: flex; 
-            flex-direction: row;
-            gap: 20px; 
-            width: 100%;
-            max-width: 1200px;
-            justify-content: center;
+        .btn-theme { 
+            background-color: var(--md-sys-color-surface-variant); 
+            color: var(--md-sys-color-on-surface); 
+            padding: 12px; flex: 0.5;
+            font-size: 1.2em;
         }
+
+        button:hover:not(:disabled) { filter: brightness(1.1); }
+        button:active:not(:disabled) { transform: scale(0.95); }
+
+        /* --- LAYOUT & CARDS --- */
+        .main-container { display: flex; gap: 20px; width: 100%; max-width: 1200px; justify-content: center; }
 
         @media (max-width: 900px) {
             .main-container { flex-direction: column; align-items: center; }
             .player-zone, .center-zone { width: 100% !important; max-width: 450px; }
-            .center-zone { order: -1; margin-bottom: 24px; }
+            .center-zone { order: -1; margin-bottom: 20px; }
         }
 
-        /* --- CARDS --- */
         .player-zone, .center-zone {
             background-color: var(--md-sys-color-surface);
-            border-radius: 24px;
-            padding: 20px;
+            border-radius: 24px; padding: 20px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--md-sys-color-surface-variant);
-            transition: border 0.3s ease;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .player-zone { 
-            flex: 1; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .active-player { 
-            border: 2px solid var(--md-sys-color-primary);
-            background-color: rgba(208, 228, 255, 0.05);
-        }
+        .active-player { border: 2px solid var(--md-sys-color-primary); }
 
         input[type="text"] { 
-            background: transparent; 
-            border: none; 
+            background: transparent; border: none; 
             border-bottom: 1px solid var(--md-sys-color-outline); 
             color: var(--md-sys-color-primary); 
-            font-size: 1.2em; 
-            text-align: center; 
-            width: 100%; 
-            margin-bottom: 20px;
-            padding-bottom: 4px;
+            font-size: 1.2em; text-align: center; width: 100%; margin-bottom: 15px;
         }
 
-        input[type="text"]:focus { outline: none; border-bottom: 2px solid var(--md-sys-color-primary); }
-
-        /* --- TABLE STYLE --- */
-        .table-wrapper {
-            width: 280px;
-            overflow-y: auto; 
-            max-height: 45vh; 
-            scrollbar-width: thin;
-        }
-
+        /* --- TABLES --- */
+        .table-wrapper { width: 280px; overflow-y: auto; max-height: 40vh; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
         th { 
-            color: var(--md-sys-color-outline);
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 0.75em;
-            padding: 12px 4px;
-            border-bottom: 1px solid var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-outline); font-weight: 500; font-size: 0.75em;
+            padding: 12px 4px; border-bottom: 1px solid var(--md-sys-color-surface-variant);
             position: sticky; top: 0; background: var(--md-sys-color-surface);
         }
-        td { padding: 10px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        td { padding: 10px 4px; border-bottom: 1px solid rgba(128,128,128,0.1); }
         .total-val { color: var(--md-sys-color-primary); font-weight: bold; }
 
-        /* --- CONTROLS --- */
+        /* --- CENTER CONTROLS --- */
         .center-zone { width: 300px; flex-shrink: 0; }
-        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; width: 100%; }
         
-        .btn-ball { background-color: var(--md-sys-color-surface-variant); color: white; height: 48px; border-radius: 12px; }
+        .btn-ball { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); height: 48px; border-radius: 12px; }
         .btn-plus { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); height: 56px; border-radius: 16px; }
-        .btn-penalty { background-color: transparent; border: 1px solid var(--md-sys-color-error); color: var(--md-sys-color-error); height: 40px; font-size: 0.8em; }
+        .btn-penalty { background-color: transparent; border: 1px solid var(--md-sys-color-error); color: var(--md-sys-color-error); height: 40px; }
         
-        button:disabled { opacity: 0.15; filter: grayscale(1); cursor: not-allowed; }
+        button:disabled { opacity: 0.15; cursor: not-allowed; }
 
-        .count-val { font-size: 3.5em; font-weight: 300; color: var(--md-sys-color-success); margin: 8px 0; }
-        .label { font-size: 0.7em; color: var(--md-sys-color-outline); text-transform: uppercase; letter-spacing: 0.5px; }
+        .count-val { font-size: 3.2em; font-weight: 300; color: var(--md-sys-color-success); margin: 4px 0; }
+        .label { font-size: 0.7em; color: var(--md-sys-color-outline); text-transform: uppercase; }
 
     </style>
 </head>
@@ -161,6 +140,7 @@
     <div class="header-btns">
         <button class="btn-start" onclick="resetGame()">NOUVELLE PARTIE</button>
         <button class="btn-undo" onclick="undo()">CORRECTION</button>
+        <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()">🌓</button>
     </div>
 
     <div class="main-container">
@@ -182,7 +162,7 @@
                 <button class="btn-penalty" onclick="applyPenalty(-15)">-15</button>
             </div>
 
-            <hr style="opacity:0.1; margin:20px 0; border: none; border-top: 1px solid white;">
+            <hr style="opacity:0.1; margin:15px 0; width: 100%;">
             
             <span class="label">Billes sur table</span>
             <div class="count-val" id="display-count">15</div>
@@ -210,12 +190,27 @@
     let state = { active: 1, lastCount: 15, accumulated: 0, p1: { total: 0, turn: 1, history: [] }, p2: { total: 0, turn: 1, history: [] } };
     let undoStack = [];
 
+    // --- GESTION DU THÈME ---
+    function toggleTheme() {
+        const body = document.body;
+        const newTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    }
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.body.setAttribute('data-theme', savedTheme);
+    }
+
+    // --- LOGIQUE CORE ---
     function saveStateBeforeAction() {
         undoStack.push(JSON.parse(JSON.stringify(state)));
         if (undoStack.length > 50) undoStack.shift();
     }
 
     function init() {
+        loadTheme();
         const grid = document.getElementById('ball-buttons');
         grid.innerHTML = "";
         for (let i = 2; i <= 15; i++) {
@@ -292,15 +287,15 @@
         localStorage.setItem("p1_name", document.getElementById('name-p1').value);
         localStorage.setItem("p2_name", document.getElementById('name-p2').value);
     }
-    function save() { localStorage.setItem("billiard_141_material", JSON.stringify(state)); }
+    function save() { localStorage.setItem("billiard_141_final_theme", JSON.stringify(state)); }
     function load() {
-        let s = localStorage.getItem("billiard_141_material");
+        let s = localStorage.getItem("billiard_141_final_theme");
         if (s) state = JSON.parse(s);
         document.getElementById('name-p1').value = localStorage.getItem("p1_name") || "Joueur 1";
         document.getElementById('name-p2').value = localStorage.getItem("p2_name") || "Joueur 2";
         render();
     }
-    function resetGame() { if(confirm("Démarrer une nouvelle partie ?")) { localStorage.removeItem("billiard_141_material"); location.reload(); } }
+    function resetGame() { if(confirm("Démarrer une nouvelle partie ?")) { localStorage.removeItem("billiard_141_final_theme"); location.reload(); } }
     window.onload = init;
 </script>
 </body>
