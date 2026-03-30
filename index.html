@@ -3,123 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>14-1 Billiard Counter Pro</title>
+    <title>14-1 Billiard Scoreboard</title>
     <style>
         :root {
-            --bg-color: #1a472a;
-            --card-bg: rgba(0, 0, 0, 0.3);
-            --accent: #f1c40f;
-            --danger: #c0392b;
-            --success: #27ae60;
-            --table-width: 280px; /* Largeur fixe pour les tableaux */
+            --md-sys-color-primary: #D0E4FF;
+            --md-sys-color-on-primary: #003355;
+            --md-sys-color-surface: #1A1C1E;
+            --md-sys-color-surface-variant: #43474E;
+            --md-sys-color-on-surface: #E2E2E6;
+            --md-sys-color-outline: #8D9199;
+            --md-sys-color-error: #FFB4AB;
+            --md-sys-color-success: #B4F0AD;
+            --card-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--bg-color); 
-            color: white; 
+            font-family: 'Roboto', 'Segoe UI', sans-serif; 
+            background-color: #111315; 
+            color: var(--md-sys-color-on-surface); 
             margin: 0; 
-            padding: 10px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             box-sizing: border-box;
+            align-items: center;
         }
 
+        /* --- TOP BAR --- */
         .header-btns { 
             display: flex; 
-            gap: 10px; 
-            margin-bottom: 10px;
-            flex-shrink: 0;
+            gap: 12px; 
             width: 100%;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+            max-width: 1000px;
+            margin-bottom: 24px;
         }
 
-        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: all 0.1s; }
-        .btn-start { background: var(--success); color: white; padding: 12px; flex: 2; }
-        .btn-undo { background: #34495e; color: white; padding: 12px; flex: 1; text-transform: uppercase; }
+        button { 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 28px; /* Material 3 style */
+            font-weight: 500; 
+            letter-spacing: 0.1px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
+        .btn-start { 
+            background-color: var(--md-sys-color-primary); 
+            color: var(--md-sys-color-on-primary); 
+            padding: 12px 24px; flex: 2;
+            font-size: 0.9em;
+        }
+
+        .btn-undo { 
+            background-color: var(--md-sys-color-surface-variant); 
+            color: var(--md-sys-color-on-surface); 
+            padding: 12px 24px; flex: 1;
+            font-size: 0.9em;
+        }
+
+        button:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+        button:active:not(:disabled) { transform: scale(0.98); }
+
+        /* --- MAIN LAYOUT --- */
         .main-container { 
             display: flex; 
             flex-direction: row;
-            gap: 15px; 
-            flex-grow: 1;
-            justify-content: center;
+            gap: 20px; 
             width: 100%;
+            max-width: 1200px;
+            justify-content: center;
         }
 
-        /* Correction Bug Smartphone */
         @media (max-width: 900px) {
-            .main-container { 
-                flex-direction: column; 
-                align-items: center;
-                overflow-y: visible;
-            }
-            .player-zone, .center-zone { 
-                width: 100% !important; 
-                max-width: 400px;
-                margin-bottom: 15px;
-            }
-            .center-zone { order: -1; } /* Boutons en haut sur mobile */
-            body { overflow-y: auto; height: auto; }
+            .main-container { flex-direction: column; align-items: center; }
+            .player-zone, .center-zone { width: 100% !important; max-width: 450px; }
+            .center-zone { order: -1; margin-bottom: 24px; }
+        }
+
+        /* --- CARDS --- */
+        .player-zone, .center-zone {
+            background-color: var(--md-sys-color-surface);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--md-sys-color-surface-variant);
+            transition: border 0.3s ease;
         }
 
         .player-zone { 
             flex: 1; 
-            background: var(--card-bg); 
-            padding: 15px; 
-            border-radius: 12px; 
-            text-align: center; 
-            border: 3px solid transparent;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centre le contenu horizontalement */
+            align-items: center;
         }
 
-        .active-player { border-color: var(--accent); background: rgba(241, 196, 15, 0.1); }
-
-        .center-zone { 
-            width: 280px; 
-            background: rgba(255,255,255,0.05); 
-            padding: 15px; 
-            border-radius: 12px; 
-            text-align: center;
-            flex-shrink: 0;
+        .active-player { 
+            border: 2px solid var(--md-sys-color-primary);
+            background-color: rgba(208, 228, 255, 0.05);
         }
 
         input[type="text"] { 
             background: transparent; 
             border: none; 
-            border-bottom: 2px solid var(--accent); 
-            color: white; 
-            font-size: 1.4em; 
+            border-bottom: 1px solid var(--md-sys-color-outline); 
+            color: var(--md-sys-color-primary); 
+            font-size: 1.2em; 
             text-align: center; 
             width: 100%; 
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 4px;
         }
 
+        input[type="text"]:focus { outline: none; border-bottom: 2px solid var(--md-sys-color-primary); }
+
+        /* --- TABLE STYLE --- */
         .table-wrapper {
-            width: var(--table-width); /* Largeur fixe demandée */
+            width: 280px;
             overflow-y: auto; 
-            max-height: 50vh; /* Limite la hauteur pour garder le tout compact */
-            border-top: 1px solid rgba(255,255,255,0.1);
+            max-height: 45vh; 
+            scrollbar-width: thin;
         }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        th { background: #111; position: sticky; top: 0; z-index: 1; padding: 10px 2px; }
-        td { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th { 
+            color: var(--md-sys-color-outline);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75em;
+            padding: 12px 4px;
+            border-bottom: 1px solid var(--md-sys-color-surface-variant);
+            position: sticky; top: 0; background: var(--md-sys-color-surface);
+        }
+        td { padding: 10px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .total-val { color: var(--md-sys-color-primary); font-weight: bold; }
 
-        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
-        .btn-ball { background: #eee; color: #333; height: 45px; }
-        .btn-plus { background: var(--accent); color: #333; height: 50px; }
-        .btn-penalty { background: var(--danger); color: white; height: 40px; font-size: 0.8em; }
+        /* --- CONTROLS --- */
+        .center-zone { width: 300px; flex-shrink: 0; }
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
         
-        button:disabled { opacity: 0.1; filter: grayscale(1); cursor: not-allowed; }
+        .btn-ball { background-color: var(--md-sys-color-surface-variant); color: white; height: 48px; border-radius: 12px; }
+        .btn-plus { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); height: 56px; border-radius: 16px; }
+        .btn-penalty { background-color: transparent; border: 1px solid var(--md-sys-color-error); color: var(--md-sys-color-error); height: 40px; font-size: 0.8em; }
+        
+        button:disabled { opacity: 0.15; filter: grayscale(1); cursor: not-allowed; }
 
-        .count-val { font-size: 2.8em; font-weight: bold; color: #2ecc71; line-height: 1; margin: 5px 0; }
-        .label { font-size: 0.7em; color: #aaa; text-transform: uppercase; }
+        .count-val { font-size: 3.5em; font-weight: 300; color: var(--md-sys-color-success); margin: 8px 0; }
+        .label { font-size: 0.7em; color: var(--md-sys-color-outline); text-transform: uppercase; letter-spacing: 0.5px; }
 
     </style>
 </head>
@@ -127,7 +160,7 @@
 
     <div class="header-btns">
         <button class="btn-start" onclick="resetGame()">NOUVELLE PARTIE</button>
-        <button class="btn-undo" onclick="undo()">↩ CORRECTION</button>
+        <button class="btn-undo" onclick="undo()">CORRECTION</button>
     </div>
 
     <div class="main-container">
@@ -135,24 +168,27 @@
             <input type="text" id="name-p1" value="Joueur 1" onchange="saveNames()">
             <div class="table-wrapper">
                 <table id="table-p1">
-                    <thead><tr><th>T</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
+                    <thead><tr><th>Tour</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
                     <tbody id="body-p1"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="center-zone">
-            <span class="label">Pénalités (Actif)</span>
+            <span class="label">Pénalités</span>
             <div class="btn-grid">
                 <button class="btn-penalty" onclick="applyPenalty(-1)">-1</button>
                 <button class="btn-penalty" onclick="applyPenalty(-2)">-2</button>
                 <button class="btn-penalty" onclick="applyPenalty(-15)">-15</button>
             </div>
 
-            <hr style="opacity:0.1; margin:10px 0;">
+            <hr style="opacity:0.1; margin:20px 0; border: none; border-top: 1px solid white;">
+            
             <span class="label">Billes sur table</span>
             <div class="count-val" id="display-count">15</div>
+            
             <div class="btn-grid" id="ball-buttons"></div>
+            
             <div class="btn-grid">
                 <button class="btn-plus" onclick="handleSpecial(14)">+14</button>
                 <button class="btn-plus" onclick="handleSpecial(15)">+15</button>
@@ -163,7 +199,7 @@
             <input type="text" id="name-p2" value="Joueur 2" onchange="saveNames()">
             <div class="table-wrapper">
                 <table id="table-p2">
-                    <thead><tr><th>T</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
+                    <thead><tr><th>Tour</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
                     <tbody id="body-p2"></tbody>
                 </table>
             </div>
@@ -234,10 +270,10 @@
         [1, 2].forEach(n => {
             let html = "";
             state['p' + n].history.forEach(h => {
-                html += `<tr><td>${h.turn}</td><td>${h.pts}</td><td>${h.pen}</td><td><strong>${h.total}</strong></td></tr>`;
+                html += `<tr><td>${h.turn}</td><td>${h.pts}</td><td style="color:var(--md-sys-color-error)">${h.pen < 0 ? h.pen : ''}</td><td class="total-val">${h.total}</td></tr>`;
             });
             if (n === state.active && !state['p'+n].history.find(h => h.turn === state['p'+n].turn)) {
-                 html += `<tr style="opacity:0.3"><td>${state['p'+n].turn}</td><td>-</td><td>-</td><td>-</td></tr>`;
+                 html += `<tr style="opacity:0.2"><td>${state['p'+n].turn}</td><td>-</td><td>-</td><td>-</td></tr>`;
             }
             const body = document.getElementById('body-p' + n);
             body.innerHTML = html;
@@ -256,15 +292,15 @@
         localStorage.setItem("p1_name", document.getElementById('name-p1').value);
         localStorage.setItem("p2_name", document.getElementById('name-p2').value);
     }
-    function save() { localStorage.setItem("billiard_141_final_v4", JSON.stringify(state)); }
+    function save() { localStorage.setItem("billiard_141_material", JSON.stringify(state)); }
     function load() {
-        let s = localStorage.getItem("billiard_141_final_v4");
+        let s = localStorage.getItem("billiard_141_material");
         if (s) state = JSON.parse(s);
         document.getElementById('name-p1').value = localStorage.getItem("p1_name") || "Joueur 1";
-        document.getElementById('name-p2').value = localStorage.getItem("name-p2") || "Joueur 2";
+        document.getElementById('name-p2').value = localStorage.getItem("p2_name") || "Joueur 2";
         render();
     }
-    function resetGame() { if(confirm("Nouvelle partie ?")) { localStorage.removeItem("billiard_141_final_v4"); location.reload(); } }
+    function resetGame() { if(confirm("Démarrer une nouvelle partie ?")) { localStorage.removeItem("billiard_141_material"); location.reload(); } }
     window.onload = init;
 </script>
 </body>
