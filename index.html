@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14-1 Billiard Counter Pro</title>
+    <style>
+        :root {
+            --bg-color: #1a472a;
+            --card-bg: rgba(0, 0, 0, 0.3);
+            --accent: #f1c40f;
+            --danger: #c0392b;
+            --success: #27ae60;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg-color); 
+            color: white; 
+            margin: 0; 
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Utilise 100% de la hauteur de l'écran */
+            box-sizing: border-box;
+        }
+
+        .header-btns { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 10px;
+            flex-shrink: 0; /* Empêche le header de rétrécir */
+        }
+
+        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: all 0.1s; }
+        .btn-start { background: var(--success); color: white; padding: 10px 20px; flex: 2; }
+        .btn-undo { background: #34495e; color: white; padding: 10px 20px; flex: 1; }
+
+        .main-container { 
+            display: flex; 
+            flex-direction: row;
+            gap: 15px; 
+            flex-grow: 1; /* Prend tout l'espace vertical restant */
+            overflow: hidden; /* Empêche le scroll global de la page */
+        }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; overflow-y: auto; }
+            .player-zone, .center-zone { width: 100% !important; flex-shrink: 0; }
+            .center-zone { order: -1; }
+        }
+
+        .player-zone { 
+            flex: 1; 
+            background: var(--card-bg); 
+            padding: 15px; 
+            border-radius: 12px; 
+            text-align: center; 
+            border: 3px solid transparent;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prépare le scroll interne */
+        }
+
+        .active-player { border-color: var(--accent); background: rgba(241, 196, 15, 0.1); }
+
+        .center-zone { 
+            width: 280px; 
+            background: rgba(255,255,255,0.05); 
+            padding: 15px; 
+            border-radius: 12px; 
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        input[type="text"] { 
+            background: transparent; 
+            border: none; 
+            border-bottom: 2px solid var(--accent); 
+            color: white; 
+            font-size: 1.4em; 
+            text-align: center; 
+            width: 90%; 
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        /* --- LA CORRECTION EST ICI --- */
+        .table-wrapper {
+            flex-grow: 1; /* Le tableau prend tout l'espace disponible dans la carte */
+            overflow-y: auto; /* Scroll uniquement si le contenu dépasse le bas de l'écran */
+            margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th { background: #111; position: sticky; top: 0; z-index: 1; padding: 10px 5px; }
+        td { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 4px; }
+
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
+        .btn-ball { background: #eee; color: #333; height: 45px; }
+        .btn-plus { background: var(--accent); color: #333; height: 50px; }
+        .btn-penalty { background: var(--danger); color: white; height: 40px; font-size: 0.9em; }
+        
+        button:disabled { opacity: 0.1; filter: grayscale(1); cursor: not-allowed; }
+
+        .count-val { font-size: 2.8em; font-weight: bold; color: #2ecc71; line-height: 1; margin: 5px 0; }
+        .label { font-size: 0.7em; color: #aaa; text-transform: uppercase; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-btns">
+        <button class="btn-start" onclick="resetGame()">NOUVELLE PARTIE</button>
+        <button class="btn-undo" onclick="undo()">↩ RETOUR</button>
+    </div>
+
+    <div class="main-container">
+        <div id="zone-p1" class="player-zone active-player" onclick="setActivePlayer(1)">
+            <input type="text" id="name-p1" value="Joueur 1" onchange="saveNames()">
+            <div class="table-wrapper">
+                <table id="table-p1">
+                    <thead><tr><th>T</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
+                    <tbody id="body-p1"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="center-zone">
+            <span class="label">Pénalités (Actif)</span>
+            <div class="btn-grid">
+                <button class="btn-penalty" onclick="applyPenalty(-1)">-1</button>
+                <button class="btn-penalty" onclick="applyPenalty(-2)">-2</button>
+                <button class="btn-penalty" onclick="applyPenalty(-15)">-15</button>
+            </div>
+
+            <hr style="opacity:0.1; margin:10px 0;">
+            <span class="label">Billes sur table</span>
+            <div class="count-val" id="display-count">15</div>
+            <div class="btn-grid" id="ball-buttons"></div>
+            <div class="btn-grid">
+                <button class="btn-plus" onclick="handleSpecial(14)">+14</button>
+                <button class="btn-plus" onclick="handleSpecial(15)">+15</button>
+            </div>
+        </div>
+
+        <div id="zone-p2" class="player-zone" onclick="setActivePlayer(2)">
+            <input type="text" id="name-p2" value="Joueur 2" onchange="saveNames()">
+            <div class="table-wrapper">
+                <table id="table-p2">
+                    <thead><tr><th>T</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
+                    <tbody id="body-p2"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Logique JS identique, optimisée pour le rafraîchissement
+    let state = { active: 1, lastCount: 15, accumulated: 0, p1: { total: 0, turn: 1, history: [] }, p2: { total: 0, turn: 1, history: [] } };
+    let undoStack = [];
+
+    function saveStateBeforeAction() {
+        undoStack.push(JSON.parse(JSON.stringify(state)));
+        if (undoStack.length > 50) undoStack.shift();
+    }
+
+    function init() {
+        const grid = document.getElementById('ball-buttons');
+        grid.innerHTML = "";
+        for (let i = 2; i <= 15; i++) {
+            let b = document.createElement('button');
+            b.className = 'btn-ball'; b.innerText = i; b.id = 'btn-ball-' + i;
+            b.onclick = (e) => { e.stopPropagation(); finishTurn(i); };
+            grid.appendChild(b);
+        }
+        load();
+    }
+
+    function setActivePlayer(n) {
+        if (state.active !== n) { saveStateBeforeAction(); state.active = n; render(); save(); }
+    }
+
+    function applyPenalty(val) {
+        saveStateBeforeAction();
+        let p = state['p' + state.active];
+        let currentEntry = p.history.find(h => h.turn === p.turn);
+        if (!currentEntry) {
+            currentEntry = { turn: p.turn, pts: 0, pen: val, total: p.total + val };
+            p.history.push(currentEntry);
+        } else {
+            currentEntry.pen += val; currentEntry.total += val;
+        }
+        p.total += val; render(); save();
+    }
+
+    function handleSpecial(val) { saveStateBeforeAction(); state.accumulated += val; render(); save(); }
+
+    function finishTurn(val) {
+        saveStateBeforeAction();
+        let p = state['p' + state.active];
+        let pts = (state.accumulated + state.lastCount) - val;
+        if (pts < 0) pts = 0;
+        let currentEntry = p.history.find(h => h.turn === p.turn);
+        if (!currentEntry) {
+            p.history.push({ turn: p.turn, pts: pts, pen: 0, total: p.total + pts });
+        } else {
+            currentEntry.pts += pts; currentEntry.total += pts;
+        }
+        p.total += pts; p.turn++; state.lastCount = val; state.accumulated = 0;
+        state.active = (state.active === 1 ? 2 : 1);
+        render(); save();
+    }
+
+    function undo() { if (undoStack.length > 0) { state = undoStack.pop(); render(); save(); } }
+
+    function render() {
+        document.getElementById('zone-p1').classList.toggle('active-player', state.active === 1);
+        document.getElementById('zone-p2').classList.toggle('active-player', state.active === 2);
+        [1, 2].forEach(n => {
+            let html = "";
+            state['p' + n].history.forEach(h => {
+                html += `<tr><td>${h.turn}</td><td>${h.pts}</td><td>${h.pen}</td><td><strong>${h.total}</strong></td></tr>`;
+            });
+            if (n === state.active && !state['p'+n].history.find(h => h.turn === state['p'+n].turn)) {
+                 html += `<tr style="opacity:0.3"><td>${state['p'+n].turn}</td><td>-</td><td>-</td><td>-</td></tr>`;
+            }
+            const body = document.getElementById('body-p' + n);
+            body.innerHTML = html;
+            // Scroll auto vers le bas du tableau pour voir le dernier coup
+            const wrapper = body.closest('.table-wrapper');
+            wrapper.scrollTop = wrapper.scrollHeight;
+        });
+        const currentTotalOnTable = state.accumulated + state.lastCount;
+        document.getElementById('display-count').innerText = currentTotalOnTable;
+        for (let i = 2; i <= 15; i++) {
+            let btn = document.getElementById('btn-ball-' + i);
+            if (btn) btn.disabled = (i > currentTotalOnTable);
+        }
+    }
+
+    function saveNames() {
+        localStorage.setItem("p1_name", document.getElementById('name-p1').value);
+        localStorage.setItem("p2_name", document.getElementById('name-p2').value);
+    }
+    function save() { localStorage.setItem("billiard_141_v3", JSON.stringify(state)); }
+    function load() {
+        let s = localStorage.getItem("billiard_141_v3");
+        if (s) state = JSON.parse(s);
+        document.getElementById('name-p1').value = localStorage.getItem("p1_name") || "Joueur 1";
+        document.getElementById('name-p2').value = localStorage.getItem("p2_name") || "Joueur 2";
+        render();
+    }
+    function resetGame() { if(confirm("Nouvelle partie ?")) { localStorage.removeItem("billiard_141_v3"); location.reload(); } }
+    window.onload = init;
+</script>
+</body>
+</html>
