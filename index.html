@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>14-1 Billiard Scoreboard</title>
+    <title>14-1 Billiard Scoreboard Pro</title>
     <style>
-        /* --- DÉFINITION DES THÈMES (VARIABLES CSS) --- */
         :root {
-            /* Mode Sombre (Par défaut) */
             --md-sys-color-primary: #D0E4FF;
             --md-sys-color-on-primary: #003355;
             --md-sys-color-surface: #1A1C1E;
@@ -18,10 +16,10 @@
             --md-sys-color-success: #B4F0AD;
             --bg-body: #111315;
             --card-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            --winner-gold: #FFD700;
         }
 
         [data-theme="light"] {
-            /* Mode Clair */
             --md-sys-color-primary: #0061A4;
             --md-sys-color-on-primary: #FFFFFF;
             --md-sys-color-surface: #FCFCFF;
@@ -29,131 +27,93 @@
             --md-sys-color-on-surface: #1A1C1E;
             --md-sys-color-outline: #74777F;
             --md-sys-color-error: #BA1A1A;
-            --md-sys-color-success: #006E00;
+            --md-sys-color-success: #008000;
             --bg-body: #F0F2F5;
             --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         body { 
-            font-family: 'Roboto', 'Segoe UI', sans-serif; 
-            background-color: var(--bg-body); 
-            color: var(--md-sys-color-on-surface); 
-            margin: 0; padding: 16px;
-            display: flex; flex-direction: column;
-            min-height: 100vh; box-sizing: border-box;
-            align-items: center;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: 'Roboto', sans-serif; background-color: var(--bg-body); 
+            color: var(--md-sys-color-on-surface); margin: 0; padding: 16px;
+            display: flex; flex-direction: column; min-height: 100vh; align-items: center;
         }
 
-        /* --- HEADER : BOUTONS AJUSTÉS --- */
-        .header-btns { 
-            display: flex; gap: 8px; 
-            width: 100%; max-width: 1000px;
-            margin-bottom: 24px;
+        .header-btns { display: flex; gap: 8px; width: 100%; max-width: 1000px; margin-bottom: 24px; align-items: center; }
+        button { cursor: pointer; border: none; border-radius: 28px; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        
+        .btn-start { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); padding: 12px 16px; flex: 1.5; font-size: 0.85em; text-transform: uppercase; }
+        .btn-icon { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); width: 44px; height: 44px; flex-shrink: 0; }
+
+        .timer-display {
+            background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-primary);
+            padding: 8px 16px; border-radius: 20px; font-family: monospace;
+            font-weight: bold; font-size: 1.1em; min-width: 80px; text-align: center;
         }
+        .timer-expired { color: #ff4444 !important; }
 
-        button { 
-            cursor: pointer; border: none; border-radius: 28px; 
-            font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; align-items: center; justify-content: center;
-            white-space: nowrap;
-        }
-
-        .btn-start { 
-            background-color: var(--md-sys-color-primary); 
-            color: var(--md-sys-color-on-primary); 
-            padding: 12px 16px; flex: 1.5; /* Largeur réduite */
-            font-size: 0.85em;
-        }
-
-        .btn-undo { 
-            background-color: var(--md-sys-color-surface-variant); 
-            color: var(--md-sys-color-on-surface); 
-            padding: 12px 16px; flex: 1.2;
-            font-size: 0.85em;
-        }
-
-        .btn-theme { 
-            background-color: var(--md-sys-color-surface-variant); 
-            color: var(--md-sys-color-on-surface); 
-            padding: 12px; flex: 0.5;
-            font-size: 1.2em;
-        }
-
-        button:hover:not(:disabled) { filter: brightness(1.1); }
-        button:active:not(:disabled) { transform: scale(0.95); }
-
-        /* --- LAYOUT & CARDS --- */
         .main-container { display: flex; gap: 20px; width: 100%; max-width: 1200px; justify-content: center; }
-
         @media (max-width: 900px) {
             .main-container { flex-direction: column; align-items: center; }
-            .player-zone, .center-zone { width: 100% !important; max-width: 450px; }
-            .center-zone { order: -1; margin-bottom: 20px; }
+            .player-zone, .center-zone { width: 100% !important; max-width: 450px; margin-bottom: 20px; }
+            .center-zone { order: -1; }
         }
 
         .player-zone, .center-zone {
-            background-color: var(--md-sys-color-surface);
-            border-radius: 24px; padding: 20px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--md-sys-color-surface-variant);
-            display: flex; flex-direction: column; align-items: center;
+            background: var(--md-sys-color-surface); border-radius: 24px; padding: 20px;
+            box-shadow: var(--card-shadow); border: 1px solid var(--md-sys-color-surface-variant);
+            display: flex; flex-direction: column; align-items: center; transition: all 0.5s ease;
         }
-
         .active-player { border: 2px solid var(--md-sys-color-primary); }
 
+        .winner-zone { border: 4px solid var(--winner-gold) !important; background: rgba(46, 125, 50, 0.2) !important; transform: scale(1.02); }
+        .winner-text { color: var(--winner-gold) !important; font-weight: 900 !important; font-size: 1.4em !important; }
+
         input[type="text"] { 
-            background: transparent; border: none; 
-            border-bottom: 1px solid var(--md-sys-color-outline); 
-            color: var(--md-sys-color-primary); 
-            font-size: 1.2em; text-align: center; width: 100%; margin-bottom: 15px;
+            background: transparent; border: none; border-bottom: 1px solid var(--md-sys-color-outline); 
+            color: var(--md-sys-color-primary); font-size: 1.2em; text-align: center; margin-bottom: 15px; width: 100%;
         }
 
-        /* --- TABLES --- */
-        .table-wrapper { width: 280px; overflow-y: auto; max-height: 40vh; }
+        .table-wrapper { width: 280px; overflow-y: auto; max-height: 40vh; border-top: 1px solid rgba(128,128,128,0.1); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-        th { 
-            color: var(--md-sys-color-outline); font-weight: 500; font-size: 0.75em;
-            padding: 12px 4px; border-bottom: 1px solid var(--md-sys-color-surface-variant);
-            position: sticky; top: 0; background: var(--md-sys-color-surface);
-        }
-        td { padding: 10px 4px; border-bottom: 1px solid rgba(128,128,128,0.1); }
+        th { color: var(--md-sys-color-outline); padding: 12px 4px; position: sticky; top: 0; background: var(--md-sys-color-surface); }
+        td { padding: 10px 4px; border-bottom: 1px solid rgba(128,128,128,0.05); text-align: center; }
         .total-val { color: var(--md-sys-color-primary); font-weight: bold; }
 
-        /* --- CENTER CONTROLS --- */
         .center-zone { width: 300px; flex-shrink: 0; }
         .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; width: 100%; }
+        .btn-ball { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); height: 48px; border-radius: 12px; }
+        .btn-plus { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); height: 56px; border-radius: 16px; }
+        .btn-penalty { background: transparent; border: 1px solid var(--md-sys-color-error); color: var(--md-sys-color-error); height: 40px; }
         
-        .btn-ball { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); height: 48px; border-radius: 12px; }
-        .btn-plus { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); height: 56px; border-radius: 16px; }
-        .btn-penalty { background-color: transparent; border: 1px solid var(--md-sys-color-error); color: var(--md-sys-color-error); height: 40px; }
-        
-        button:disabled { opacity: 0.15; cursor: not-allowed; }
-
+        button:disabled { opacity: 0.15; cursor: not-allowed; filter: grayscale(1); }
         .count-val { font-size: 3.2em; font-weight: 300; color: var(--md-sys-color-success); margin: 4px 0; }
-        .label { font-size: 0.7em; color: var(--md-sys-color-outline); text-transform: uppercase; }
 
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal { background: var(--md-sys-color-surface); padding: 32px; border-radius: 28px; width: 90%; max-width: 400px; }
+        .config-item { display: flex; flex-direction: column; margin-bottom: 20px; }
+        .config-item label { font-size: 0.8em; margin-bottom: 8px; color: var(--md-sys-color-outline); }
+        .config-item input { border-radius: 8px; padding: 10px; background: var(--md-sys-color-surface-variant); border: none; color: white; }
     </style>
 </head>
 <body>
 
     <div class="header-btns">
-        <button class="btn-start" onclick="resetGame()">NOUVELLE PARTIE</button>
-        <button class="btn-undo" onclick="undo()">CORRECTION</button>
-        <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()">🌓</button>
+        <button class="btn-start" onclick="handleResetButtonClick()">Nouveau jeu</button>
+        <button class="btn-icon" onclick="undo()" title="Annuler">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+        </button>
+        <button class="btn-icon" onclick="toggleTheme()">🌓</button>
+        <button class="btn-icon" id="config-trigger" onclick="openConfig()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.84,9.48l2.03,1.58C4.82,11.36,4.8,11.68,4.8,12c0,0.32,0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5 s1.57-3.5,3.5-3.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"/></svg>
+        </button>
+        <div class="timer-display" id="game-timer">00:00</div>
     </div>
 
     <div class="main-container">
         <div id="zone-p1" class="player-zone active-player" onclick="setActivePlayer(1)">
             <input type="text" id="name-p1" value="Joueur 1" onchange="saveNames()">
-            <div class="table-wrapper">
-                <table id="table-p1">
-                    <thead><tr><th>Tour</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
-                    <tbody id="body-p1"></tbody>
-                </table>
-            </div>
+            <div class="table-wrapper"><table id="table-p1"><thead><tr><th>Tour</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead><tbody id="body-p1"></tbody></table></div>
         </div>
-
         <div class="center-zone">
             <span class="label">Pénalités</span>
             <div class="btn-grid">
@@ -161,142 +121,272 @@
                 <button class="btn-penalty" onclick="applyPenalty(-2)">-2</button>
                 <button class="btn-penalty" onclick="applyPenalty(-15)">-15</button>
             </div>
-
             <hr style="opacity:0.1; margin:15px 0; width: 100%;">
-            
             <span class="label">Billes sur table</span>
             <div class="count-val" id="display-count">15</div>
-            
             <div class="btn-grid" id="ball-buttons"></div>
-            
             <div class="btn-grid">
-                <button class="btn-plus" onclick="handleSpecial(14)">+14</button>
-                <button class="btn-plus" onclick="handleSpecial(15)">+15</button>
+                <button class="btn-plus" id="btn-14" onclick="handleSpecial(14)">+14</button>
+                <button class="btn-plus" id="btn-15" onclick="handleSpecial(15)">+15</button>
             </div>
         </div>
-
         <div id="zone-p2" class="player-zone" onclick="setActivePlayer(2)">
             <input type="text" id="name-p2" value="Joueur 2" onchange="saveNames()">
-            <div class="table-wrapper">
-                <table id="table-p2">
-                    <thead><tr><th>Tour</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead>
-                    <tbody id="body-p2"></tbody>
-                </table>
-            </div>
+            <div class="table-wrapper"><table id="table-p2"><thead><tr><th>Tour</th><th>Pts</th><th>Pén.</th><th>Total</th></tr></thead><tbody id="body-p2"></tbody></table></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="config-modal">
+        <div class="modal">
+            <h2>Configuration</h2>
+            <div class="config-item"><label>Durée max (minutes)</label><input type="number" id="cfg-time" placeholder="Indéfini"></div>
+            <div class="config-item"><label>Nombre de tours max</label><input type="number" id="cfg-turns" placeholder="Indéfini"></div>
+            <div class="config-item"><label>Points maximums</label><input type="number" id="cfg-points" placeholder="Indéfini"></div>
+            <button class="btn-start" style="width:100%" onclick="closeConfig()">Valider</button>
         </div>
     </div>
 
 <script>
-    let state = { active: 1, lastCount: 15, accumulated: 0, p1: { total: 0, turn: 1, history: [] }, p2: { total: 0, turn: 1, history: [] } };
+    const getInitialState = (currentConfig = null) => ({
+        active: 1, lastCount: 15, accumulated: 0, 
+        startTime: null, isGameStarted: false, isGameOver: false, winnerMode: null,
+        config: currentConfig || { time: null, turns: null, points: null },
+        p1: { total: 0, turn: 1, history: [] }, p2: { total: 0, turn: 1, history: [] }
+    });
+
+    let state = getInitialState();
     let undoStack = [];
+    let timerInterval = null;
 
-    // --- GESTION DU THÈME ---
-    function toggleTheme() {
-        const body = document.body;
-        const newTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
+    function startTimerDisplay() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!state.isGameStarted || state.isGameOver) return;
+            
+            const now = Date.now();
+            const diff = now - state.startTime;
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            
+            const timerEl = document.getElementById('game-timer');
+            timerEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (state.config.time && minutes >= state.config.time) {
+                timerEl.classList.add('timer-expired');
+            } else {
+                timerEl.classList.remove('timer-expired');
+            }
+        }, 1000);
     }
 
-    function loadTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.body.setAttribute('data-theme', savedTheme);
+    // Fonction de configuration TOUJOURS ouverte
+    function openConfig() { 
+        document.getElementById('config-modal').style.display = 'flex'; 
     }
 
-    // --- LOGIQUE CORE ---
-    function saveStateBeforeAction() {
-        undoStack.push(JSON.parse(JSON.stringify(state)));
-        if (undoStack.length > 50) undoStack.shift();
-    }
+    function closeConfig() {
+        state.config.time = parseInt(document.getElementById('cfg-time').value) || null;
+        state.config.turns = parseInt(document.getElementById('cfg-turns').value) || null;
+        state.config.points = parseInt(document.getElementById('cfg-points').value) || null;
+        document.getElementById('config-modal').style.display = 'none';
 
-    function init() {
-        loadTheme();
-        const grid = document.getElementById('ball-buttons');
-        grid.innerHTML = "";
-        for (let i = 2; i <= 15; i++) {
-            let b = document.createElement('button');
-            b.className = 'btn-ball'; b.innerText = i; b.id = 'btn-ball-' + i;
-            b.onclick = (e) => { e.stopPropagation(); finishTurn(i); };
-            grid.appendChild(b);
+        // Si la partie était déjà lancée ou terminée, on réévalue la victoire
+        if (state.isGameStarted) {
+            const winResult = checkVictory();
+            if (winResult) {
+                state.isGameOver = true;
+                state.winnerMode = winResult;
+                clearInterval(timerInterval);
+            } else {
+                // Si le changement d'options rend la partie jouable à nouveau
+                state.isGameOver = false;
+                state.winnerMode = null;
+                if (timerInterval === null) startTimerDisplay();
+            }
         }
-        load();
+        render();
+        save();
     }
 
-    function setActivePlayer(n) {
-        if (state.active !== n) { saveStateBeforeAction(); state.active = n; render(); save(); }
-    }
-
-    function applyPenalty(val) {
-        saveStateBeforeAction();
-        let p = state['p' + state.active];
-        let currentEntry = p.history.find(h => h.turn === p.turn);
-        if (!currentEntry) {
-            currentEntry = { turn: p.turn, pts: 0, pen: val, total: p.total + val };
-            p.history.push(currentEntry);
-        } else {
-            currentEntry.pen += val; currentEntry.total += val;
+    function checkVictory() {
+        const p1 = state.p1; const p2 = state.p2;
+        const cfg = state.config;
+        
+        if (cfg.points) {
+            if (p1.total >= cfg.points) return 1;
+            if (p2.total >= cfg.points) return 2;
         }
-        p.total += val; render(); save();
+        
+        if (cfg.time && state.startTime) {
+            if ((Date.now() - state.startTime) / 60000 >= cfg.time) {
+                if (p1.total > p2.total) return 1;
+                if (p2.total > p1.total) return 2;
+                return 'tie';
+            }
+        }
+        
+        if (cfg.turns && state.active === 2 && (p2.turn - 1) >= cfg.turns) {
+            if (p1.total > p2.total) return 1;
+            if (p2.total > p1.total) return 2;
+            return 'tie';
+        }
+        return null;
     }
-
-    function handleSpecial(val) { saveStateBeforeAction(); state.accumulated += val; render(); save(); }
 
     function finishTurn(val) {
+        if (!state.isGameStarted || state.isGameOver) return;
         saveStateBeforeAction();
         let p = state['p' + state.active];
         let pts = (state.accumulated + state.lastCount) - val;
         if (pts < 0) pts = 0;
-        let currentEntry = p.history.find(h => h.turn === p.turn);
-        if (!currentEntry) {
-            p.history.push({ turn: p.turn, pts: pts, pen: 0, total: p.total + pts });
+        let entry = p.history.find(h => h.turn === p.turn);
+        if (!entry) p.history.push({ turn: p.turn, pts, pen: 0, total: p.total + pts });
+        else { entry.pts += pts; entry.total += pts; }
+        p.total += pts; p.turn++;
+        state.lastCount = val; state.accumulated = 0;
+        
+        render(); 
+        
+        const winResult = checkVictory();
+        if (winResult) {
+            state.isGameOver = true;
+            state.winnerMode = winResult;
+            clearInterval(timerInterval);
+            render(); 
         } else {
-            currentEntry.pts += pts; currentEntry.total += pts;
+            state.active = (state.active === 1 ? 2 : 1);
+            render();
         }
-        p.total += pts; p.turn++; state.lastCount = val; state.accumulated = 0;
-        state.active = (state.active === 1 ? 2 : 1);
-        render(); save();
+        save();
     }
 
-    function undo() { if (undoStack.length > 0) { state = undoStack.pop(); render(); save(); } }
+    function applyPenalty(val) {
+        if (!state.isGameStarted || state.isGameOver) return;
+        saveStateBeforeAction();
+        let p = state['p' + state.active];
+        let entry = p.history.find(h => h.turn === p.turn);
+        if (!entry) p.history.push({ turn: p.turn, pts: 0, pen: val, total: p.total + val });
+        else { entry.pen += val; entry.total += val; }
+        p.total += val; render(); save();
+    }
+
+    function saveStateBeforeAction() { undoStack.push(JSON.parse(JSON.stringify(state))); if (undoStack.length > 50) undoStack.shift(); }
+    function setActivePlayer(n) { if (state.isGameStarted && !state.isGameOver && state.active !== n) { saveStateBeforeAction(); state.active = n; render(); save(); } }
+    function handleSpecial(val) { if (state.isGameStarted && !state.isGameOver) { saveStateBeforeAction(); state.accumulated += val; render(); save(); } }
+    function undo() { if (undoStack.length > 0) { state = undoStack.pop(); render(); save(); if (state.isGameStarted && !state.isGameOver) startTimerDisplay(); } }
 
     function render() {
-        document.getElementById('zone-p1').classList.toggle('active-player', state.active === 1);
-        document.getElementById('zone-p2').classList.toggle('active-player', state.active === 2);
+        const z1 = document.getElementById('zone-p1');
+        const z2 = document.getElementById('zone-p2');
+        const n1 = document.getElementById('name-p1');
+        const n2 = document.getElementById('name-p2');
+        const timerEl = document.getElementById('game-timer');
+        
+        z1.className = 'player-zone'; z2.className = 'player-zone';
+        n1.className = ''; n2.className = '';
+
+        if (!state.isGameOver) {
+            document.getElementById('zone-p' + state.active).classList.add('active-player');
+            n1.value = localStorage.getItem("p1_name_141") || "Joueur 1";
+            n2.value = localStorage.getItem("p2_name_141") || "Joueur 2";
+        } else {
+            if (state.winnerMode === 'tie') {
+                z1.classList.add('winner-zone'); z2.classList.add('winner-zone');
+                n1.classList.add('winner-text'); n2.classList.add('winner-text');
+                n1.value = "🤝 ÉGALITÉ"; n2.value = "🤝 ÉGALITÉ";
+            } else {
+                const wz = document.getElementById('zone-p' + state.winnerMode);
+                const wt = document.getElementById('name-p' + state.winnerMode);
+                wz.classList.add('winner-zone'); wt.classList.add('winner-text');
+                wt.value = "🏆 GAGNANT";
+            }
+        }
+
         [1, 2].forEach(n => {
             let html = "";
-            state['p' + n].history.forEach(h => {
-                html += `<tr><td>${h.turn}</td><td>${h.pts}</td><td style="color:var(--md-sys-color-error)">${h.pen < 0 ? h.pen : ''}</td><td class="total-val">${h.total}</td></tr>`;
+            state['p'+n].history.forEach(h => {
+                html += `<tr><td>${h.turn}</td><td>${h.pts}</td><td style="color:var(--md-sys-color-error)">${h.pen||''}</td><td class="total-val">${h.total}</td></tr>`;
             });
-            if (n === state.active && !state['p'+n].history.find(h => h.turn === state['p'+n].turn)) {
+            if (state.isGameStarted && !state.isGameOver && n === state.active && !state['p'+n].history.find(h => h.turn === state['p'+n].turn)) {
                  html += `<tr style="opacity:0.2"><td>${state['p'+n].turn}</td><td>-</td><td>-</td><td>-</td></tr>`;
             }
-            const body = document.getElementById('body-p' + n);
-            body.innerHTML = html;
-            const wrapper = body.closest('.table-wrapper');
-            wrapper.scrollTop = wrapper.scrollHeight;
+            const b = document.getElementById('body-p'+n); b.innerHTML = html;
+            b.closest('.table-wrapper').scrollTop = b.closest('.table-wrapper').scrollHeight;
         });
-        const currentTotalOnTable = state.accumulated + state.lastCount;
-        document.getElementById('display-count').innerText = currentTotalOnTable;
-        for (let i = 2; i <= 15; i++) {
-            let btn = document.getElementById('btn-ball-' + i);
-            if (btn) btn.disabled = (i > currentTotalOnTable);
+        
+        const current = state.accumulated + state.lastCount;
+        document.getElementById('display-count').innerText = current;
+
+        const isLocked = !state.isGameStarted || state.isGameOver;
+        document.querySelectorAll('.btn-ball').forEach(btn => btn.disabled = (isLocked || parseInt(btn.innerText) > current));
+        document.getElementById('btn-14').disabled = isLocked;
+        document.getElementById('btn-15').disabled = isLocked;
+        document.querySelectorAll('.btn-penalty').forEach(b => b.disabled = isLocked);
+        
+        if (!state.isGameStarted) {
+            timerEl.innerText = "00:00";
+            timerEl.classList.remove('timer-expired');
         }
+
+        document.getElementById('cfg-time').value = state.config.time || "";
+        document.getElementById('cfg-turns').value = state.config.turns || "";
+        document.getElementById('cfg-points').value = state.config.points || "";
     }
 
     function saveNames() {
-        localStorage.setItem("p1_name", document.getElementById('name-p1').value);
-        localStorage.setItem("p2_name", document.getElementById('name-p2').value);
+        if(!state.isGameOver) {
+            localStorage.setItem("p1_name_141", document.getElementById('name-p1').value);
+            localStorage.setItem("p2_name_141", document.getElementById('name-p2').value);
+        }
     }
-    function save() { localStorage.setItem("billiard_141_final_theme", JSON.stringify(state)); }
+
+    function handleResetButtonClick() {
+        if (!state.isGameStarted || state.isGameOver) {
+            resetGameCore();
+        } else {
+            if(confirm("Une partie est en cours. Voulez-vous vraiment l'abandonner pour en commencer une nouvelle ?")) {
+                resetGameCore();
+            }
+        }
+    }
+
+    function resetGameCore() {
+        const currentConfig = state.config;
+        state = getInitialState(currentConfig);
+        state.isGameStarted = true;
+        state.startTime = Date.now();
+        undoStack = []; 
+        startTimerDisplay();
+        render(); 
+        save();
+    }
+
+    function save() { localStorage.setItem("billiard_state_141_vFinal", JSON.stringify(state)); }
     function load() {
-        let s = localStorage.getItem("billiard_141_final_theme");
-        if (s) state = JSON.parse(s);
-        document.getElementById('name-p1').value = localStorage.getItem("p1_name") || "Joueur 1";
-        document.getElementById('name-p2').value = localStorage.getItem("p2_name") || "Joueur 2";
+        const s = localStorage.getItem("billiard_state_141_vFinal");
+        if (s) {
+            state = JSON.parse(s);
+            if (state.isGameStarted && !state.isGameOver) startTimerDisplay();
+        }
+        document.getElementById('name-p1').value = localStorage.getItem("p1_name_141") || "Joueur 1";
+        document.getElementById('name-p2').value = localStorage.getItem("p2_name_141") || "Joueur 2";
+        document.body.setAttribute('data-theme', localStorage.getItem('theme_141') || 'dark');
         render();
     }
-    function resetGame() { if(confirm("Démarrer une nouvelle partie ?")) { localStorage.removeItem("billiard_141_final_theme"); location.reload(); } }
-    window.onload = init;
+
+    function toggleTheme() {
+        const b = document.body; const t = b.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        b.setAttribute('data-theme', t); localStorage.setItem('theme_141', t);
+    }
+
+    window.onload = () => {
+        const grid = document.getElementById('ball-buttons');
+        for (let i = 2; i <= 15; i++) {
+            let b = document.createElement('button'); b.className = 'btn-ball'; b.innerText = i; b.id = 'btn-ball-'+i;
+            b.onclick = (e) => { e.stopPropagation(); finishTurn(i); }; grid.appendChild(b);
+        }
+        load();
+    };
 </script>
 </body>
 </html>
